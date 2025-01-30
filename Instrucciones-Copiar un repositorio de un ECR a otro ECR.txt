@@ -1,0 +1,58 @@
+Copiar un repositorio de un ECR a otro ECR
+
+PASO 1
+*-*-*-* Crear usuarios en dos cuentas de AWS *-*-*-*
+En la cuenta A, crearemos el usuario dev
+En la cuenta B, crearemos el usuario prod
+Para ambos usuarios creamos access key y las configuraremos localmente
+
+PASO 2
+*-*-*-* Autenticarse en el ECR de ORIGEN *-*-*-*
+Autenticar entre perfiles
+ -aws ecr get-login-password --region REGION_ORIGEN --profile NOMBRE_DEL_PERFIL | docker login --username AWS --password-stdin ID_CUENTA_ORIGEN.dkr.ecr.REGION_ORIGEN.amazonaws.com
+ -aws ecr get-login-password --region us-east-1 --profile dev | docker login --username AWS --password-stdin 637423349711.dkr.ecr.us-east-1.amazonaws.com
+Autenticar con perfil por default
+ -aws ecr get-login-password --region REGION_ORIGEN | docker login --username AWS --password-stdin ID_CUENTA_ORIGEN.dkr.ecr.REGION_ORIGEN.amazonaws.com
+ -aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 637423349711.dkr.ecr.us-east-1.amazonaws.com
+
+PASO 3
+*-*-*-* Obtener el nombre de la imagen de origen *-*-*-*
+Listar imagenes entre perfiles
+ -aws ecr list-images --repository-name NOMBRE_REPO_ORIGEN --region REGION_ORIGEN --profile NOMBRE_DEL_PERFIL
+ -aws ecr list-images --repository-name repo-dev --region us-east-1 --profile dev
+Listar con perfil por default
+ -aws ecr list-images --repository-name NOMBRE_REPO_ORIGEN --region REGION_ORIGEN
+ -aws ecr list-images --repository-name repo-dev --region us-east-1
+
+PASO 4
+*-*-*-* Descargar imagen de origen *-*-*-*
+ -docker pull ID_CUENTA_ORIGEN.dkr.ecr.REGION_ORIGEN.amazonaws.com/NOMBRE_REPO_ORIGEN:<tag>
+ -docker pull 637423349711.dkr.ecr.us-east-1.amazonaws.com/repo-dev:v1.0
+
+PASO 5
+*-*-*-* Autenticarse en el ECR de DESTINO *-*-*-*
+Autenticar entre perfiles
+ -aws ecr get-login-password --region REGION_DESTINO --profile NOMBRE_DEL_PERFIL | docker login --username AWS --password-stdin ID_CUENTA_DESTINO.dkr.ecr.REGION_ORIGEN.amazonaws.com
+ -aws ecr get-login-password --region us-east-1 --profile prod | docker login --username AWS --password-stdin 578234568011.dkr.ecr.us-east-1.amazonaws.com
+Autenticar con perfil por default
+ -aws ecr get-login-password --region REGION_DESTINO | docker login --username AWS --password-stdin ID_CUENTA_DESTINO.dkr.ecr.REGION_DESTINO.amazonaws.com
+ -aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 578234568011.dkr.ecr.us-east-1.amazonaws.com
+
+PASO 6
+*-*-*-* Etiquetar la imagen para el nuevo destino *-*-*-*
+ -docker tag ID_CUENTA_ORIGEN.dkr.ecr.REGION_ORIGEN.amazonaws.com/NOMBRE_REPO_ORIGEN:<tag> ID_CUENTA_DESTINO.dkr.ecr.REGION_DESTINO.amazonaws.com/NOMBRE_REPO_ORIGEN:<tag>
+ -docker tag 637423349711.dkr.ecr.us-east-1.amazonaws.com/repo-dev:v1.0 578234568011.dkr.ecr.us-east-1.amazonaws.com/repo-prod:v1.0
+
+PASO 7
+*-*-*-* Subir la imagen al repositorio de destino *-*-*-*
+ -docker push ID_CUENTA_DESTINO.dkr.ecr.REGION_DESTINO.amazonaws.com/NOMBRE_REPO_DESTINO:<tag>
+ -docker push 578234568011.dkr.ecr.us-east-1.amazonaws.com/repo-prod:v1.0
+
+PASO 8
+*-*-*-* Probar la imagen en una task *-*-*-*
+Crear un cluster, asi como service y una task defintion.
+Consultar la IP publica del servicio y revisar el sitio
+
+PASO 8
+*-*-*-* Verificar que la imagen este en el destino *-*-*-*
+Visitar el ECR del destino
